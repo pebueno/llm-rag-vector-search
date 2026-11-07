@@ -1,17 +1,25 @@
 [project]
-name = "1-rag"
+name = "llm-zoomcamp-1-rag"
 version = "0.1.0"
-description = "Add your description here"
+description = "LLM Zoomcamp 2026, Module 1: RAG pipeline and agentic loop (Groq)"
 readme = "README.md"
 authors = [
     { name = "Pedro Ivo Bueno Sartório", email = "pedroivobu@gmail.com" }
 ]
-requires-python = ">=3.14"
-dependencies = []
+requires-python = ">=3.12"
+dependencies = [
+    "gitsource>=0.0.5",
+    "minsearch>=0.2.0",
+    "openai>=3.58.0",
+    "python-dotenv>=1.2.4",
+    "requests>=2.34.2",
+    "sqlitesearch>=0.3.0",
+]
 
-[project.scripts]
-1-rag = "1_rag:main"
+[tool.uv]
+package = false
 
-[build-system]
-requires = ["uv_build>=0.12.1,<0.13.0"]
-build-backend = "uv_build"
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+]
