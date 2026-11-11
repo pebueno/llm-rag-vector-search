@@ -1,0 +1,17 @@
+# Postgres 17 with the pgvector extension pre-installed (lesson 08).
+# Credentials are local-only defaults from the course.
+services:
+  pgvector:
+    image: pgvector/pgvector:pg17
+    container_name: llmzc-pgvector
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pswd
+      POSTGRES_DB: faq
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+
+volumes:
+  pgvector_data:
