@@ -10,6 +10,7 @@ b64() { printf '%s' "${1:-}" | base64 | tr -d '\n'; }
 export SECRET_GEMINI_API_KEY="$(b64 "${GEMINI_API_KEY:-}")"
 export SECRET_OPENAI_API_KEY="$(b64 "${OPENAI_API_KEY:-}")"
 export SECRET_TAVILY_API_KEY="$(b64 "${TAVILY_API_KEY:-}")"
+export SECRET_GROQ_API_KEY="$(b64 "${GROQ_API_KEY:-}")"
 
 docker compose up -d
 echo "Kestra UI: http://localhost:${KESTRA_PORT:-8080}  (admin@kestra.io / Admin1234!)"

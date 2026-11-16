@@ -1,0 +1,119 @@
+{
+  "1_chat_without_rag": {
+    "text": "**Kestra 1.1 – Key New Features (released Oct 2023)**  \n\n| # | Feature | Brief description |\n|---|---------|-------------------|\n| 1 | **Graphical Workflow Builder & Live Run View** | A drag‑and‑drop UI that lets you compose pipelines visually and watch an execution’s DAG update in real time (tasks highlighted as they start, succeed or fail). |\n| 2 | **Dynamic Task Generation (Loops & Matrices)** | New “foreach” and “matrix” task types enable you to create an arbitrary number of parallel sub‑tasks at runtime based on a list, a range, or the result of a previous task. |\n| 3 | **Built‑in Cloud Connectors** | First‑class plugins for AWS (S3, Lambda, Redshift), GCP (BigQuery, Cloud Storage) and Azure (Blob, Data Factory) are bundled with the core distribution, making it possible to call these services without writing custom code. |\n| 4 | **Enhanced Scheduling Engine** | Supports CRON expressions with time‑zone awareness, calendar exclusions, and “catch‑up” policies, plus a UI calendar that shows the next 10 scheduled runs for any workflow. |\n| 5 | **Secrets & Vault Integration** | Direct integration with HashiCorp Vault, AWS Secrets Manager, and Azure Key Vault. Secrets can now be referenced in tasks via `${secret.my_key}` syntax and are masked in logs. |\n| 6 | **Versioned Workflows & Rollback** | Every workflow edit is automatically versioned; you can promote a specific version to “active” or roll back to a previous revision from the UI or API. |\n| 7 | **Improved REST API & OpenAPI Spec** | The API now includes endpoints for workflow versioning, run‑time metrics, and bulk task cancellation, with an auto‑generated OpenAPI 3.0 specification for easier client generation. |\n| 8 | **Observability Dashboard** | New “Metrics” page aggregates run counts, success/failure rates, average duration, and resource usage per workflow; data can be exported to Prometheus or Grafana. |\n| 9 | **GitOps Workflow Management** | Workflows can be stored in a Git repository and automatically synced; commits trigger a “preview” run that shows what would change before applying. |\n|10| **Plugin Marketplace (beta)** | A curated catalog of community‑contributed plugins (e.g., Slack, Kafka, Snowflake) that can be installed with a single click from the UI. |\n\n*These ten items cover the most visible, production‑impacting changes in the 1.1 release; any five of them satisfy the “at least 5 major features” request.*"
+  },
+  "4_simple_agent:short": {
+    "runs": [
+      {
+        "multilingual_agent": {
+          "output_tokens": 72,
+          "text": "Kestra is an open-source platform for defining workflows using YAML, enabling both developers and non-developers to automate tasks via a user-friendly interface. It offers version control, security, and auditing features, and can be extended via plugins and custom scripts for flexible, growth-oriented workflow management. "
+        },
+        "english_brevity": {
+          "output_tokens": 65,
+          "text": "Kestra is an innovative open-source platform that enables non-developers and developers alike to easily automate tasks using YAML workflows, while providing essential features like version control, security, and auditing, along with plugin and custom script extensions for seamless, scalable workflow management. "
+        }
+      },
+      {
+        "multilingual_agent": {
+          "output_tokens": 73,
+          "text": "Kestra is an open-source orchestration platform that enables non-developers to automate tasks through a no-code interface, preserving version control, governance, and security. It adheres to a modular design, making it suitable for data engineering, business process automation, and more, with capabilities to expand via plugins and custom scripts. "
+        },
+        "english_brevity": {
+          "output_tokens": 63,
+          "text": "Kestra is an innovative open-source platform that empowers non-developers with a user-friendly no-code interface, ensuring version control, governance, and security, making it a versatile solution for data engineering and business process automation, expandable through plugins and custom scripts. "
+        }
+      },
+      {
+        "multilingual_agent": {
+          "output_tokens": 108,
+          "text": "Kestra is an open-source orchestration platform enabling non-developers to automate tasks via a no-code interface. It features version control, governance, security, and auditing. Built to grow as needed, it supports Python scripts, Docker containers, and complex logic. Used in data engineering, ETL pipelines, and business process automation. In this bonus module, the focus is on accelerating workflow development with AI technologies like AI Copilot, RAG, and autonomous agents. "
+        },
+        "english_brevity": {
+          "output_tokens": 116,
+          "text": "Kestra is an advanced open-source orchestration platform that aids non-developers in automating tasks via a user-friendly no-code interface, implementing essential features like version control, governance, security, and auditing; its flexible design enables seamless integration with Python scripts, Docker containers, and complex logic, empowering data engineering, ETL pipelines, and business process automation, and in this bonus module, users can exploit AI technologies such as AI Copilot, RAG, and autonomous agents to significantly accelerate workflow development. "
+        }
+      }
+    ],
+    "median_output_tokens": {
+      "multilingual_agent": 73,
+      "english_brevity": 65
+    }
+  },
+  "4_simple_agent:long": {
+    "runs": [
+      {
+        "multilingual_agent": {
+          "output_tokens": 144,
+          "text": "Kestra is an open-source orchestration platform that facilitates workflow automation using declarative YAML definitions. It caters to both developers and non-developers through a no-code interface, ensuring version control, governance, security, and auditing capabilities. With an expandable infrastructure incorporating plugins and custom scripts, Kestra adapts to diverse use cases including data engineering, ETL pipelines, and business process automation. In Zoomcamp LLM, bonus module focuses on AI-enhanced workflow development utilizing AI Copilot, RAG, vector search, agents, and evaluation tools for producing production-ready LLM applications and promoting accelerated development processes. "
+        },
+        "english_brevity": {
+          "output_tokens": 105,
+          "text": "Kestra is an open-source platform for workflow automation using YAML, catering to developers and non-developers with a no-code interface, offering version control, governance, security, and auditing features; it supports data engineering, ETL pipelines, and business process automation, while the Zoomcamp LLM bonus module utilizes AI tools like AI Copilot and RAG to accelerate AI-enhanced workflow development and produce production-ready LLM applications. "
+        }
+      },
+      {
+        "multilingual_agent": {
+          "output_tokens": 157,
+          "text": "Kestra is an open-source orchestration platform that facilitates defining workflows using YAML, allowing both developers and non-developers to automate tasks via a user-friendly interface. It ensures version control, governance, security, and auditing capabilities. With plugins and custom scripts, Kestra supports tailoring its functionality for diverse use cases. Adhering to a \"start simple, grow as needed\" approach, it enables efficient workflow development suited for data engineering, ETL pipelines, and business process automation. In the Zoomcamp LLM training, a bonus module focuses on leveraging AI components such as AI Copilot, RAG, and autonomous agents to speed up workflow development and improve overall efficiency. "
+        },
+        "english_brevity": {
+          "output_tokens": 99,
+          "text": "Kestra is an open-source orchestration platform that enables workflow automation for developers and non-developers via a user-friendly interface, providing features like version control, governance, security, and auditing, while allowing customization through plugins and scripts; it helps develop efficient workflows for data engineering, ETL pipelines, and business process automation, as demonstrated in a bonus AI-focused module during the Zoomcamp LLM training. "
+        }
+      },
+      {
+        "multilingual_agent": {
+          "output_tokens": 134,
+          "text": "Kestra is an open-source orchestration platform offering a user-friendly No-Code interface for workflow automation definition using YAML. It ensures version control, governance, security, and auditing for tasks performed by developers and non-developers alike. The platform's modularity allows for expansion with custom plugins and scripts, making it suitable for data engineering, ETL pipelines, business process automation, and more. In the context of the LLM Zoomcamp course, this module focuses on utilising AI-powered tools like AI Copilot, RAG, and autonomous agents for accelerating workflow development. "
+        },
+        "english_brevity": {
+          "output_tokens": 116,
+          "text": "Kestra is an open-source orchestration platform that enables easy workflow automation via its No-Code interface and YAML support, providing developer and non-developer users with version control, governance, security, and auditing features, while its modularity allows for expansion via custom plugins and scripts, making it applicable for various tasks like data engineering, business process automation, and more, as demonstrated in the Zoomcamp course through AI-powered tools like AI Copilot, RAG, and autonomous agents for faster workflow development. "
+        }
+      }
+    ],
+    "median_output_tokens": {
+      "multilingual_agent": 144,
+      "english_brevity": 105
+    }
+  },
+  "4_simple_agent_3_sentences:long": {
+    "runs": [
+      {
+        "multilingual_agent": {
+          "output_tokens": 164,
+          "text": "Kestra is an open-source orchestration platform that enables users, regardless of their background, to define workflows visually using YAML. With a non-code interface, advanced features like version control, governance, and security, it ensures each task's version, status, and auditing. Supported by plugins and custom scripts, Kestra adapts effortlessly to diverse applications, such as data engineering, ETL pipelines, and business process automation. The platform's modular approach allows simple to complex workflows, making it flexible for different use cases. In the context of Zoomcamp, this bonus module focuses on introducing AI Copilot, RAG, vector search, agents, and evaluation techniques to accelerate workflow development in LLM applications. "
+        },
+        "english_brevity": {
+          "output_tokens": 121,
+          "text": "Kestra is an open-source platform that helps users without coding knowledge create workflows visually using YAML. It offers advanced features like version control, governance, and security through its user-friendly interface. Compatible with plugins and custom scripts, Kestra adapts seamlessly to various applications, including data engineering, ETL pipelines, and business process automation. Within the Zoomcamp scenario, this bonus module focuses on incorporating AI Copilot, RAG, vector search, agents, and evaluation techniques to accelerate workflow development for LLM applications. "
+        }
+      },
+      {
+        "multilingual_agent": {
+          "output_tokens": 147,
+          "text": "Kestra is an open-source orchestration platform facilitating task automation through YAML-based declarative workflows, available to developers and non-developers with a user-friendly interface. Maintaining version control, governance, security, and auditability, Kestra يسهل customization via plugins and scripts for tailored use cases. Adhering to a flexible strategy, Kestra enables fast initial setups and expansion for various automation purposes like data engineering, business process, and more. Within Zoomcamp's LLM training, bonus content focuses on AI acceleration via AI Copilot, RAG, vector search, agents, and evaluation, enabling efficient workflow development. "
+        },
+        "english_brevity": {
+          "output_tokens": 107,
+          "text": "Kestra is an open-source orchestration platform that helps automate tasks with YAML-based workflows, suitable for both developers and non-developers. It offers features like version control, security, and plugins for customization in various automation aspects like data engineering and business processes. As part of Zoomcamp's LLM training, additional content is provided to accelerate AI, featuring AI Copilot, RAG, vector search, agents, and evaluation for efficient workflow development. "
+        }
+      },
+      {
+        "multilingual_agent": {
+          "output_tokens": 132,
+          "text": "Kestra is an open-source orchestration platform that enables declarative workflows definition using YAML, allowing both developers and non-developers to automate tasks through a no-code interface. Its features, including version control, governance, security, and auditing, make it suitable for various applications such as data engineering, ETL pipelines, and business process automation. Within LLM Zoomcamp, attendees learn production-ready application development using RAG, vector search, agents, and evaluation, before exploring AI acceleration with features like AI Copilot, RAG, and autonomous agents in a bonus module. "
+        },
+        "english_brevity": {
+          "output_tokens": 135,
+          "text": "Kestra is an open-source orchestration platform that allows declarative workflows using YAML, enabling automation for both developers and non-developers via a user-friendly interface. Its versatile features, including version control, governance, security, and auditing, make it ideal for data engineering, ETL pipelines, and business process automation. At LLM Zoomcamp, participants learn about the development of production-ready applications using RAG, vector search, agents, and evaluation, followed by an exploration of AI acceleration with features like AI Copilot, RAG, and autonomous agents, covered in an additional module. "
+        }
+      }
+    ],
+    "median_output_tokens": {
+      "multilingual_agent": 147,
+      "english_brevity": 121
+    }
+  }
+}
