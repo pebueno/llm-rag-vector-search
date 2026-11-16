@@ -1,89 +1,106 @@
-# Module 3 — Orchestration
+# Module 3 — AI Orchestration with Kestra
 
-> LLM Zoomcamp 2026 · Week 4
+> LLM Zoomcamp 2026 · [course module](https://github.com/DataTalksClub/llm-zoomcamp/tree/main/03-orchestration) · [homework spec](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/cohorts/2026/homework/03-orchestration/homework.md)
 
-Covers building reliable, reproducible pipelines for getting data into a RAG system — from raw documents to searchable embeddings — and orchestrating multi-step AI workflows where multiple agents collaborate on complex tasks.
-
----
-
-## Why orchestration matters
-
-A RAG system is only as good as its ingestion pipeline. Without orchestration:
-- Re-running ingestion duplicates data
-- Failures mid-pipeline leave the system in a broken state
-- There's no visibility into what ran, when, and whether it succeeded
-- Scaling to new data sources requires rewriting everything
-
-**Orchestration** makes pipelines: idempotent, observable, schedulable, and composable.
+Modules 1–2 built RAG and agents in Python notebooks. This module moves the same ideas into an
+**orchestrator**: [Kestra](https://kestra.io) flows are YAML files. Each task is an LLM call, a RAG step or an agent,
+and every run is logged, scheduled and retryable, with token usage recorded per task.
 
 ---
+
+## What's in this folder
+
+| Path | What it is |
+|------|------------|
+| [`docker-compose.yml`](docker-compose.yml) | Kestra 1.3 + Postgres (course file; host ports and a Groq secret added) |
+| [`start.sh`](start.sh) | Base64-encodes keys from `.env` into Kestra's `SECRET_*` variables and starts the stack |
+| [`import_flows.sh`](import_flows.sh) | Imports every flow in `flows/` through the Kestra API |
+| [`flows/`](flows/) | The six course flows, unchanged (Gemini; flows 3, 5 and 6 also need OpenAI or Tavily keys) |
+| [`flows/groq/`](flows/groq/) | Homework flows with the provider swapped to Groq; prompts unchanged |
+| [`homework/run_flows.py`](homework/run_flows.py) | Runs the homework flows 3× each through the API and saves token usage |
+| [`homework/results.json`](homework/results.json) | Raw outputs and token counts from those runs |
 
 ## Lessons
 
-| Lesson | Topic |
-|--------|-------|
-| 3.1 | Why context engineering matters — why generic LLMs fail on private data |
-| 3.2 | Ingestion pipeline design — extract → chunk → embed → store |
-| 3.3 | Idempotent pipelines — safe to re-run without duplicating data |
-| 3.4 | Kestra introduction — flows, tasks, triggers, namespaces |
-| 3.5 | RAG workflow in Kestra — orchestrated end-to-end ingestion |
-| 3.6 | AI Copilot in Kestra — LLM-assisted flow generation |
-| 3.7 | Autonomous agents — LLM makes multi-step decisions without fixed paths |
-| 3.8 | Multi-agent systems — specialized agents collaborating on complex tasks |
-| 3.9 | Production readiness — cost, security, observability, tool availability |
-
-### Workshop: Data Ingestion with dlt
-
-| Topic | Description |
-|-------|-------------|
-| dlt pipelines | Declarative data loading from filesystem, REST APIs |
-| DuckDB | In-process analytical queries over loaded data |
-| marimo dashboards | Interactive Python notebooks for LLM trace analysis |
+| # | Lesson | Key idea |
+|---|--------|----------|
+| 01 | Intro | Orchestration adds scheduling, retries, logs and governance around AI tasks |
+| 02 | Context engineering | Generic chatbots write outdated Kestra YAML because they lack current docs; the fix is context, not a bigger model |
+| 03 | Setup | Docker Compose, secrets as base64 `SECRET_*` env vars, importing flows |
+| 04 | AI Copilot | The Copilot generates flows using the current plugin schemas (the "5% rule": you fix the last details) |
+| 05 | RAG | `IngestDocument` → embeddings in the KV store → `rag.ChatCompletion`; flows 1 vs 2 |
+| 06 | Agents | `AIAgent` task: system message + prompt + tools; flows 4 and 5 |
+| 07 | Multi-agent | One agent's output becomes another's input (flow 6) |
+| 08 | Best practices | Pick deterministic tasks vs agents deliberately; cost, secrets, observability |
 
 ---
 
-## Technologies
+## Homework 3 results
 
-| Tool | Role |
-|------|------|
-| **Kestra** | Open-source orchestration platform — YAML-defined flows, UI, scheduling |
-| **dlt** | Declarative data loading library — sources, destinations, schemas |
-| **DuckDB** | In-process OLAP database — fast analytical queries over ingested data |
-| **marimo** | Reactive Python notebooks for data exploration |
-| **Docker Compose** | Run Kestra + dependencies locally |
-| **Python** | Pipeline logic, chunking, embedding generation |
+| Q | Question | Measured | Answer |
+|---|----------|----------|--------|
+| 1 | Why Copilot beats ChatGPT at Kestra flows | *pending: ChatGPT comparison to be run by hand* | AI Copilot has access to current Kestra plugin documentation |
+| 2 | Non-RAG answer about Kestra 1.1 | Confident table of 9 "1.1 features" such as namespaces and secrets integrations, which existed long before 1.1 or are invented | **Vague, generic, or fabricated** |
+| 3 | `multilingual_agent` output tokens, short | median 95 (range 72–115, 6 runs) | **60–100 tokens** |
+| 4 | Long vs short output tokens | median 144 vs 95 = **1.5×** | between "about the same" and "2–5×", see note |
+| 5 | `english_brevity` 3 vs 1 sentence | median 144 vs 103 = **1.4×** | between "about the same" and "2–4×", see note |
+| 6 | Deterministic, regulated workflows | — | **Traditional task-based workflows** (predictable, auditable) |
+
+### Why Q3–Q5 aren't clean: the model matters more than the prompt
+
+The course measures with `gemini-2.5-flash`. Without a Gemini key, the flows run on Groq through Kestra's OpenAI
+provider (`baseUrl: https://api.groq.com/openai/v1`):
+
+1. **`openai/gpt-oss-120b` (first attempt) is a reasoning model.** Its hidden reasoning tokens count as output: a 1–2 sentence
+   "short" summary reported ~235 output tokens, and runs ranged from 95 to 438. The noise was larger than the short-vs-long difference.
+   Reasoning tokens are billed even though the user never sees them, which matters for cost monitoring (module 5).
+2. **`allam-2-7b` (used for the reported numbers) doesn't reason, but follows length instructions poorly.** "Short (1–2 sentences)" came back
+   as ~4 sentences, and "exactly 3 sentences" as ~6. Token ratios therefore come out smaller than the
+   prompts intend (1.4–1.5× instead of the 2×+ the instructions imply).
+
+Lesson: token budgets and length controls are model-specific. If cost depends on output length, enforce it
+(`max_tokens`, structured output) rather than asking in the prompt. Re-run `flows/` with a Gemini key to get the
+reference answers for Q4–Q5.
 
 ---
 
-## Key concepts
+## Decisions and deviations
 
-**Idempotency** — running a pipeline twice should produce the same result as running it once. Achieved via upserts, checksums, or deduplication on a unique key.
-
-**Context engineering** — carefully designing what context the LLM receives. The wrong context produces hallucinations; the right context produces accurate answers. Orchestration controls how context is built.
-
-**Autonomous agents** — unlike fixed RAG (search → answer), agents dynamically decide which tools to use, how many times, and in what order. Orchestration manages their lifecycle and retry logic.
-
-**Multi-agent systems** — specialized agents (retriever, reasoner, validator, summarizer) collaborate. One agent's output becomes another's input. Orchestration defines the topology.
-
-**Observability** — knowing whether your pipeline succeeded, how long each step took, and why it failed. Kestra provides this via a UI and structured logs.
+| Decision | Why |
+|----------|-----|
+| Groq copies in `flows/groq/` instead of editing course flows | Course flows stay runnable as-is with a Gemini key; the diff is one provider block. |
+| `4_simple_agent_3_sentences.yaml` as a separate flow | Q5 edits a flow in the UI; a separate file keeps both versions versioned and re-runnable. |
+| Runs via API, 3× per config, median reported | LLM output varies run to run; a single execution isn't a measurement. |
+| Configurable host ports (`KESTRA_PORT`, `KESTRA_MGMT_PORT`) | 8081 was taken by another local service. |
+| `start.sh` handles base64 encoding | Kestra requires base64-encoded secrets; scripting it keeps raw keys only in the gitignored `.env`. |
+| Flow 2 (RAG) not run | Needs an embedding model; Groq has none. Q2 is answered from flow 1's output. |
 
 ---
 
 ## Running
 
 ```bash
-docker compose up -d    # starts Kestra + dependencies
-uv sync
-uv run jupyter notebook
+cd 3-orchestration
+cp .env.example .env          # GEMINI_API_KEY for course flows, GROQ_API_KEY for flows/groq
+./start.sh                    # Kestra UI at http://localhost:8080 (admin@kestra.io / Admin1234!)
+./import_flows.sh
+python homework/run_flows.py  # re-run homework measurements
+docker compose down
 ```
 
 ---
 
-## Applied in capstone
+## Where this shows up in Sentinel AI
 
-The ingestion pipeline pattern is implemented in **[Sentinel AI](https://github.com/pebueno/sentinel-ai)**:
+[Sentinel AI](https://github.com/pebueno/sentinel-ai) doesn't use Kestra. Its pipeline is a `Makefile` target (`make ingest`)
+that runs three Python scripts in order: generate knowledge base → generate events → embed and load into Postgres.
+That works for a one-off demo, but there's no retry, schedule or run history. Those are exactly what this module adds.
+A natural next step for Sentinel is a Kestra flow wrapping those three scripts on a schedule.
 
-- `src/ingestion/generate_knowledge_base.py` — calls Groq to generate 60 security documents across 10 categories
-- `src/ingestion/generate_events.py` — generates 2006 synthetic home security events
-- `src/ingestion/ingest.py` — creates pgvector schema, embeds documents, loads all data
-- `Makefile` — `make ingest` wraps all three steps as a reproducible pipeline
+---
+
+## References
+
+- Course module: [03-orchestration](https://github.com/DataTalksClub/llm-zoomcamp/tree/main/03-orchestration)
+- [Kestra AI plugins](https://kestra.io/plugins/plugin-ai) · [Kestra secrets in open source](https://kestra.io/docs/how-to-guides/secrets)
+- [Groq OpenAI compatibility](https://console.groq.com/docs/openai) · [Groq reasoning models](https://console.groq.com/docs/reasoning)
