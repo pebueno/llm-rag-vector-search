@@ -1,128 +1,135 @@
 # Module 4 — Evaluation
 
-> LLM Zoomcamp 2026 · Week 5
+> LLM Zoomcamp 2026 · [course module](https://github.com/DataTalksClub/llm-zoomcamp/tree/main/04-evaluation) · [homework spec](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/cohorts/2026/homework/04-evaluation/homework.md)
 
-Systematic evaluation of RAG systems: measuring whether the right documents are being retrieved (retrieval evaluation) and whether the generated answers are actually correct and useful (answer quality evaluation). Both offline (pre-deployment) and online (post-deployment) strategies.
-
----
-
-## Why evaluation matters
-
-Without evaluation you're guessing. With evaluation you can:
-- Quantify whether retrieval improvements actually help end users
-- Compare prompt variants objectively instead of eyeballing examples
-- Catch regressions when you change your embedding model or chunking strategy
-- Build a feedback loop between production signals and development
+Modules 1–3 built search, RAG and agents, and judged them by eyeballing a few queries. This module replaces
+that with numbers. A **ground truth** of questions with known answers lets every change to search or prompts be
+scored, compared and either kept or reverted.
 
 ---
 
-## Two evaluation layers
+## What's in this folder
 
-### Layer 1: Retrieval evaluation
+| File | What it does | Course lessons |
+|------|--------------|----------------|
+| [`search_eval.ipynb`](search_eval.ipynb) | Relevance lists, Hit Rate, MRR on the FAQ; boost tuning with a validation/test split | 01–06 |
+| [`llm_judge.ipynb`](llm_judge.ipynb) | LLM-as-a-judge over RAG answers, with a calibration check on known-bad answers | 11–14 |
+| [`homework.ipynb`](homework.ipynb) | Homework 4: question generation, text vs vector vs hybrid on the lesson pages, RRF `k` tuning, truncation experiment | — |
+| [`eval_utils.py`](eval_utils.py) | `hit_rate`, `mrr`, `evaluate(ground_truth, search_fn, is_relevant)`, Groq structured output with rate-limit handling | — |
+| `embedder.py`, `download.py` | Course's ONNX embedder (homework 2), `all-MiniLM-L6-v2` without PyTorch | 02-vector-search/09 |
+| `data/` | Course-prepared ground truth (FAQ and lesson pages) and RAG answers | — |
 
-Measures whether the search pipeline returns the right documents.
-
-**Ground truth generation**: use an LLM to generate `(question → document_id)` pairs — for each document, ask the LLM *"what question does this document answer?"*. This creates a test set without human annotation.
-
-**Metrics:**
-
-| Metric | Formula | Interpretation |
-|--------|---------|---------------|
-| **Hit Rate @k** | `hits / total` | Fraction of questions where correct doc appears in top-k |
-| **MRR @k** | `mean(1/rank)` | Rewards finding the right doc at rank 1 more than rank 5 |
-
-Higher is better for both. MRR is stricter — a hit at rank 5 scores 0.2 vs 1.0 for rank 1.
-
-### Layer 2: Answer quality evaluation (LLM-as-a-judge)
-
-Measures whether the generated answer is actually relevant and correct.
-
-An LLM judge receives `(question, retrieved context, generated answer)` and classifies:
-- `RELEVANT` — fully answers the question using context
-- `PARTLY_RELEVANT` — partial answer or notable gaps
-- `NOT_RELEVANT` — off-topic, wrong, or ignores context
-
-Scales to thousands of examples. No human annotation needed. Works best when the judge model is different from (or larger than) the generation model.
+Lesson 14 (agent evaluation: saving tool-call trajectories) was read but has no code here.
 
 ---
 
-## Lessons
+## The two layers
 
-| Lesson | Topic |
-|--------|-------|
-| 4.1 | Offline vs online evaluation — pre-deployment testing vs production monitoring |
-| 4.2 | Ground truth generation — LLM-generated (question → document) pairs |
-| 4.3 | Hit Rate and MRR — implementation from scratch |
-| 4.4 | Comparing retrieval methods — keyword vs vector vs hybrid |
-| 4.5 | LLM-as-a-judge — prompt design, classification schema, agreement analysis |
-| 4.6 | Cosine similarity scoring — embedding-based answer quality |
-| 4.7 | Prompt variant comparison — does a better system prompt produce better answers? |
-| 4.8 | Batch evaluation — ThreadPoolExecutor for parallel scoring |
-| 4.9 | Online evaluation — integrating real user feedback as a quality signal |
+| Layer | Question it answers | How |
+|-------|---------------------|-----|
+| **Retrieval** | Did search return the right document? | Ground truth `(question → document)`, then **Hit Rate@5** (right doc anywhere in top 5) and **MRR@5** (mean of 1/rank) |
+| **Answer** | Is the generated answer correct? | **LLM-as-a-judge**: a second model compares the answer to a reference and returns a structured verdict |
+
+The ground truth itself is LLM-generated: for each document, an LLM writes questions it answers, worded differently
+from the source so the test isn't trivially easy.
 
 ---
 
-## Technologies
+## Homework 4 results
 
-| Tool | Role |
-|------|------|
-| **Groq** | Generation model + judge model (free tier) |
-| **sentence-transformers** | Embedding-based cosine similarity scoring |
-| **pandas** | Results aggregation and summary statistics |
-| **tqdm** | Progress tracking over large evaluation sets |
-| **ThreadPoolExecutor** | Parallel evaluation across question sets |
-| **matplotlib** | Visualising results — bar charts, distributions |
-| **PostgreSQL** | Storing ground truth and results for offline analysis |
+| Q | Measured | Answer |
+|---|----------|--------|
+| 1 | Avg input tokens generating questions for 3 pages: 1,483 | **1400** |
+| 2 | Text search top-1 for the first question: `03-rag.md` | **03-rag.md** |
+| 3 | Vector search top-1: `01-intro.md` | **01-intro.md** |
+| 4 | Text search Hit Rate: 0.758 | **0.76** |
+| 5 | Vector search MRR: 0.549 | **0.55** |
+| 6 | Hybrid MRR by k: 1 → 0.648, 50/100/200 → 0.638 | **1** |
+
+Homework 2 Q1 (ONNX `v[0]` for "How does approximate nearest neighbor search work?"): **−0.02**.
 
 ---
 
-## Key concepts
+## Findings
 
-**Offline evaluation** — run against a fixed test set before deploying. Catches obvious regressions. Doesn't reflect real user behaviour.
+Measured in the notebooks, beyond what the lessons state.
 
-**Online evaluation** — measure quality in production via user feedback (thumbs up/down), implicit signals (session length, follow-up questions), or LLM judge scoring every live response.
+### 1. The intuitive boost was the worst one
+Module 1 used `question: 3.0` because matching the FAQ question "felt" most important. In the grid search it's the
+**worst** question boost. Answer-weighted boosts win (MRR 0.54 → 0.63), and the gain holds on held-out documents
+(test MRR 0.520 → 0.612). Generated and real questions share vocabulary with *answers*, not with short question titles.
 
-**Embedding-based scoring** — compare the embedding of the generated answer to the embedding of a reference answer using cosine similarity. Faster than LLM judge but misses reasoning errors.
+### 2. "Keyword beats vector" was partly a truncation artifact
 
-**Toxicity assessment** — use a pre-trained classifier to flag harmful or biased outputs. Important for public-facing systems.
+| Vector setup (lesson pages, 360 questions) | Hit Rate | MRR |
+|---------------------------------------------|----------|-----|
+| 2000-char chunks, tokenizer truncates at 128 tokens (homework) | 0.725 | 0.549 |
+| 2000-char chunks, 256 tokens | 0.808 | 0.636 |
+| 500-char chunks, 128 tokens | 0.828 | 0.665 |
+| *Text search, for reference* | *0.758* | *0.594* |
 
-**Judge calibration** — the LLM judge's ratings only mean something if it's consistent. Evaluate agreement between human raters and the judge on a sample before trusting it at scale.
+The shipped ONNX tokenizer silently truncates at 128 tokens, while a 2000-char chunk is ~530 tokens, so vector search
+embedded about a quarter of each chunk. Fixing that puts vector **above** text. Before comparing retrievers, check that
+each one actually sees the whole document. The embedding model's max sequence length is a chunking constraint.
+
+### 3. Hybrid search wins, and its `k` hardly matters
+Hybrid (RRF) reaches Hit Rate 0.84 against 0.76 for text and 0.73 for vector: the two retrievers miss different questions.
+Changing `k` from 1 to 200 moves MRR by only 0.01.
+
+### 4. A judge has to be tested before it is trusted
+On 40 course RAG answers the judge said "good" for 95%, and both "bad" verdicts were justified on reading. The key check
+is calibration: 10 answers deliberately paired with the wrong question were **all** rejected. That test only covers easy
+negatives (wrong topic). Subtle errors need a small human-labelled set.
+
+---
+
+## Decisions and deviations
+
+| Decision | Why |
+|----------|-----|
+| Groq `openai/gpt-oss-120b` with `chat.completions.parse` | Course uses OpenAI `responses.parse`; Groq supports structured output through chat completions. A different model family from the course's answer generator, so the judge isn't grading itself. |
+| Course-prepared ground truth instead of regenerating | Regenerating ~80 FAQ records + 72 pages would use a large share of the free-tier budget. Homework Q1 still generates a sample to show the method. |
+| Judge 40 sampled answers, sequentially | Free tier: 1,000 requests/day, 8k tokens/minute. Parallel calls only hit the per-minute limit sooner. |
+| `evaluate()` takes an `is_relevant` function | The lessons hard-code FAQ `id` matching; the homework needs `filename` matching. One function serves both. |
+| Validation/test split for boost tuning | Tuning and reporting on the same questions overstates the gain. |
+| Data URLs from `04-evaluation/` and `02-vector-search/embed/` | The homework's `cohorts/2026/...` URLs return 404 after a repo restructure. |
 
 ---
 
 ## Running
 
 ```bash
+cd 4-evaluation
+cp .env.example .env            # GROQ_API_KEY
 uv sync
+uv run python download.py       # ONNX model into models/ (homework only)
 uv run jupyter notebook
-```
-
-Requires PostgreSQL running for some notebooks:
-```bash
-docker compose up postgres -d
 ```
 
 ---
 
-## Applied in capstone
+## Where this shows up in Sentinel AI
 
-Full evaluation suite in **[Sentinel AI](https://github.com/pebueno/sentinel-ai)**:
+[Sentinel AI](https://github.com/pebueno/sentinel-ai) has the same two layers:
+[`notebooks/01-retrieval-eval.ipynb`](https://github.com/pebueno/sentinel-ai/blob/master/notebooks/01-retrieval-eval.ipynb)
+(Hit Rate / MRR for keyword, vector and hybrid) and
+[`notebooks/02-rag-eval.ipynb`](https://github.com/pebueno/sentinel-ai/blob/master/notebooks/02-rag-eval.ipynb) plus
+[`src/monitoring/judge.py`](https://github.com/pebueno/sentinel-ai/blob/master/src/monitoring/judge.py) (LLM judge).
 
-- `notebooks/01-retrieval-eval.ipynb` — Hit Rate + MRR for keyword vs vector vs hybrid
-- `notebooks/02-rag-eval.ipynb` — LLM-as-judge across 3 prompt variants
-- `src/monitoring/judge.py` — production judge: scores every live conversation automatically
-- `data/ground_truth/` — cached evaluation results (60 Q&A pairs, LLM judge results)
+This module explains two of its reported results:
+- **Vector Hit Rate 0.068**: reproduced in [module 2](../2-vector-search/README.md#3-ivfflat-pitfalls-in-pgvector-and-the-bug-behind-sentinel-ais-vector-score)
+  as an IVFFlat index built on an empty table. Sentinel also embeds title + summary + full content with a 256-token
+  model limit, so finding 2 (truncation) likely applies as well.
+- **Judge: 100% NOT_RELEVANT for two prompt variants.** A judge that rejects almost everything fails the same calibration
+  test as one that accepts everything. Feeding it known-good and known-bad answers is the next step there.
 
-**Results:**
+Both are follow-ups in the Sentinel repo, not fixed here.
 
-| Method | Hit Rate @5 | MRR @5 |
-|--------|------------|--------|
-| Keyword | 1.000 | 0.955 |
-| Hybrid RRF | 0.932 | 0.554 |
-| Vector | 0.068 | 0.037 |
+---
 
-| Prompt variant | RELEVANT | PARTLY_RELEVANT | NOT_RELEVANT |
-|---------------|---------|----------------|-------------|
-| Baseline | 16% | 0% | 83% |
-| With instructions | 0% | 0% | 100% |
-| Instructions + rewriting | 0% | 0% | 100% |
+## References
+
+- Course module: [04-evaluation](https://github.com/DataTalksClub/llm-zoomcamp/tree/main/04-evaluation)
+- Cormack, Clarke & Büttcher, [Reciprocal Rank Fusion](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) (SIGIR 2009)
+- Zheng et al., [Judging LLM-as-a-Judge](https://arxiv.org/abs/2306.05685) (2023)
+- [Groq structured outputs](https://console.groq.com/docs/structured-outputs)
